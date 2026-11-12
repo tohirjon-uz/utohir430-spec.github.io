@@ -132,6 +132,7 @@
       box-shadow: 0 6px 20px rgba(0,0,0,0.35);
       cursor: pointer;
       z-index: 1000;
+      border: none;
     }
     #status-banner {
       display: none;
@@ -141,12 +142,12 @@
       transform: translateX(-50%);
       background: #111;
       color: #fff;
-      padding: 12px 20px;
-      border-radius: 25px;
+      padding: 14px 20px;
+      border-radius: 16px;
       font-weight: bold;
       font-size: 14px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-      z-index: 3000;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+      z-index: 9999;
       width: 85%;
       max-width: 320px;
     }
@@ -160,27 +161,18 @@
     <h1>Tohirjon Usmonov</h1>
     <p>Mening shaxsiy veb-saytimga xush kelibsiz! Videolarga layk bosing va izoh qoldiring.</p>
     
+    <!-- Faqat + tugmasi orqali yuklangan videolar shu yerda chiqadi -->
     <div id="dynamic-videos"></div>
-
-    <div class="post-box">
-      <video controls playsinline>
-        <source src="603cc6bda1b9b07eb294497bf0208eb7.mp4" type="video/mp4">
-      </video>
-    </div>
 
     <a href="https://instagram.com" target="_blank" class="btn">Instagram sahifam</a>
     <a href="https://youtube.com" target="_blank" class="btn">YouTube kanalim</a>
   </div>
 
-  <label for="video-input" class="plus-btn">+</label>
+  <button type="button" class="plus-btn" onclick="document.getElementById('video-input').click()">+</button>
   <input type="file" id="video-input" accept="video/*" style="display: none;">
 
-  <script src="https://jsdelivr.net"></script>
+  <script src="https://unpkg.com"></script>
   <script>
-    const supabaseUrl = 'https://supabase.co';
-    const supabaseKey = 'sb_publishable_ieHAB6n9oBjpZJZ2JVZ6hw_17yR3gK9';
-    const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
     const banner = document.getElementById('status-banner');
     const plusBtn = document.querySelector('.plus-btn');
 
@@ -190,9 +182,20 @@
       banner.textContent = msg;
     }
 
+    if (!window.supabase) {
+      showStatus("❌ Supabase kutubxonasi yuklanmadi (Internetni tekshiring)", true);
+    }
+
+    const supabaseUrl = 'https://supabase.co';
+    const supabaseKey = 'sb_publishable_ieHAB6n9oBjpZJZ2JVZ6hw_17yR3gK9';
+    const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
     document.getElementById('video-input').addEventListener('change', async function(e) {
       const file = e.target.files.item(0);
-      if (!file) return;
+      if (!file) {
+        showStatus("⚠️ Fayl tanlanmadi", true);
+        return;
+      }
 
       const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
       plusBtn.textContent = '⏳';
@@ -203,7 +206,7 @@
         
         const { error: uploadError } = await _supabase.storage.from('videos').upload(fileName, file);
         if (uploadError) {
-          showStatus("❌ Yuklash xatosi: " + uploadError.message, true);
+          showStatus("❌ Storage xatosi: " + uploadError.message, true);
           plusBtn.textContent = '+';
           return;
         }
@@ -234,7 +237,12 @@
     });
 
     async function loadVideos() {
-      const { data: posts } = await _supabase.from('posts').select('*').order('id', { ascending: false });
+      const { data: posts, error } = await _supabase.from('posts').select('*').order('id', { ascending: false });
+      if (error) {
+        showStatus("❌ Bazani o'qish xatosi: " + error.message, true);
+        return;
+      }
+
       const { data: allComments } = await _supabase.from('comments').select('*').order('id', { ascending: true });
       
       const container = document.getElementById('dynamic-videos');
