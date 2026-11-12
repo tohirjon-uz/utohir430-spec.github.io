@@ -4,10 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tohirjon Usmonov | Shaxsiy sahifa</title>
+  <script src="https://jsdelivr.net"></script>
   <style>
     body {
       margin: 0;
-      padding: 20px 0;
+      padding: 20px 0 90px 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
@@ -56,6 +57,29 @@
       transition: 0.3s;
     }
     .btn:hover { transform: scale(1.03); }
+
+    /* Pastki o'ng burchakdagi + tugmasi dizayni */
+    .plus-btn {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      width: 62px;
+      height: 62px;
+      background: white;
+      color: #764ba2;
+      border-radius: 50%;
+      font-size: 38px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+      cursor: pointer;
+      z-index: 1000;
+      transition: 0.2s;
+      user-select: none;
+    }
+    .plus-btn:active { transform: scale(0.92); }
   </style>
 </head>
 <body>
@@ -64,7 +88,10 @@
     <h1>Tohirjon Usmonov</h1>
     <p>Mening shaxsiy veb-saytimga xush kelibsiz! Ijtimoiy tarmoqlardagi sahifalarimga obuna bo'ling.</p>
     
-    <!-- Video pleyer -->
+    <!-- Yangi yuklangan videolar shu yerda chiqadi -->
+    <div id="dynamic-videos"></div>
+
+    <!-- Sizning birinchi videongiz -->
     <video controls playsinline>
       <source src="603cc6bda1b9b07eb294497bf0208eb7.mp4" type="video/mp4">
     </video>
@@ -72,5 +99,59 @@
     <a href="https://instagram.com" target="_blank" class="btn">Instagram sahifam</a>
     <a href="https://youtube.com" target="_blank" class="btn">YouTube kanalim</a>
   </div>
+
+  <!-- Ekran burchagidagi + tugmasi -->
+  <label for="video-input" class="plus-btn" title="Video qo'shish">+</label>
+  <input type="file" id="video-input" accept="video/*" style="display: none;">
+
+  <script>
+    const supabaseUrl = 'https://yqchfzbardeylzjwjmjp.supabase.co';
+    const supabaseKey = 'sb_publishable_ieHAB6n9oBjpZJZ2JVZ6hw_17yR3gK9';
+    const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // + tugmasi orqali video yuklash
+    document.getElementById('video-input').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const btn = document.querySelector('.plus-btn');
+      btn.textContent = '⏳';
+
+      const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+
+      const { error } = await _supabase.storage.from('videos').upload(fileName, file);
+      if (error) {
+        alert("Yuklashda xatolik: " + error.message);
+        btn.textContent = '+';
+        return;
+      }
+
+      const { data: publicUrlData } = _supabase.storage.from('videos').getPublicUrl(fileName);
+      await _supabase.from('posts').insert([{ video_url: publicUrlData.publicUrl }]);
+      
+      btn.textContent = '+';
+      alert("Video muvaffaqiyatli chiqarildi!");
+      loadVideos();
+    });
+
+    // Bazadagi barcha videolarni ekranga chiqarish
+    async function loadVideos() {
+      const { data: posts } = await _supabase.from('posts').select('*').order('id', { ascending: false });
+      const container = document.getElementById('dynamic-videos');
+      container.innerHTML = '';
+
+      if (posts) {
+        posts.forEach(post => {
+          container.innerHTML += `
+            <video controls playsinline>
+              <source src="${post.video_url}" type="video/mp4">
+            </video>
+          `;
+        });
+      }
+    }
+
+    loadVideos();
+  </script>
 </body>
 </html>
