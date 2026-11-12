@@ -161,7 +161,6 @@
     <h1>Tohirjon Usmonov</h1>
     <p>Mening shaxsiy veb-saytimga xush kelibsiz! Videolarga layk bosing va izoh qoldiring.</p>
     
-    <!-- Faqat + tugmasi orqali yuklangan videolar shu yerda chiqadi -->
     <div id="dynamic-videos"></div>
 
     <a href="https://instagram.com" target="_blank" class="btn">Instagram sahifam</a>
@@ -171,8 +170,15 @@
   <button type="button" class="plus-btn" onclick="document.getElementById('video-input').click()">+</button>
   <input type="file" id="video-input" accept="video/*" style="display: none;">
 
-  <script src="https://unpkg.com"></script>
   <script>
+    const SUPABASE_URL = 'https://supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_ieHAB6n9oBjpZJZ2JVZ6hw_17yR3gK9';
+    
+    const headers = {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY
+    };
+
     const banner = document.getElementById('status-banner');
     const plusBtn = document.querySelector('.plus-btn');
 
@@ -182,20 +188,10 @@
       banner.textContent = msg;
     }
 
-    if (!window.supabase) {
-      showStatus("❌ Supabase kutubxonasi yuklanmadi (Internetni tekshiring)", true);
-    }
-
-    const supabaseUrl = 'https://supabase.co';
-    const supabaseKey = 'sb_publishable_ieHAB6n9oBjpZJZ2JVZ6hw_17yR3gK9';
-    const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
+    // Video yuklash (tashqi kutubxonasiz to'g'ridan-to'g'ri)
     document.getElementById('video-input').addEventListener('change', async function(e) {
       const file = e.target.files.item(0);
-      if (!file) {
-        showStatus("⚠️ Fayl tanlanmadi", true);
-        return;
-      }
+      if (!file) return;
 
       const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
       plusBtn.textContent = '⏳';
@@ -204,22 +200,40 @@
       try {
         const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
         
-        const { error: uploadError } = await _supabase.storage.from('videos').upload(fileName, file);
-        if (uploadError) {
-          showStatus("❌ Storage xatosi: " + uploadError.message, true);
+        // 1. Videoni Storage'ga yuborish
+        const uploadRes = await fetch(`${SUPABASE_URL}/storage/v1/object/videos/${fileName}`, {
+          method: 'POST',
+          headers: {
+            ...headers,
+            'Content-Type': file.type || 'video/mp4'
+          },
+          body: file
+        });
+
+        if (!uploadRes.ok) {
+          const errText = await uploadRes.text();
+          showStatus("❌ Yuklash xatosi: " + errText, true);
           plusBtn.textContent = '+';
           return;
         }
 
+        // 2. Havolani bazaga yozish
         showStatus("⏳ Bazaga saqlanmoqda...");
-        const { data: publicUrlData } = _supabase.storage.from('videos').getPublicUrl(fileName);
+        const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/videos/${fileName}`;
         
-        const { error: dbError } = await _supabase.from('posts').insert([
-          { video_url: publicUrlData.publicUrl, likes: 0 }
-        ]);
+        const dbRes = await fetch(`${SUPABASE_URL}/rest/v1/posts`, {
+          method: 'POST',
+          headers: {
+            ...headers,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({ video_url: publicUrl, likes: 0 })
+        });
 
-        if (dbError) {
-          showStatus("❌ Baza xatosi: " + dbError.message, true);
+        if (!dbRes.ok) {
+          const errText = await dbRes.text();
+          showStatus("❌ Baza xatosi: " + errText, true);
           plusBtn.textContent = '+';
           return;
         }
@@ -236,61 +250,80 @@
       }
     });
 
+    // Videolarni yuklab olish
     async function loadVideos() {
-      const { data: posts, error } = await _supabase.from('posts').select('*').order('id', { ascending: false });
-      if (error) {
-        showStatus("❌ Bazani o'qish xatosi: " + error.message, true);
-        return;
-      }
+      try {
+        const postsRes = await fetch(`${SUPABASE_URL}/rest/v1/posts?select=*&order=id.desc`, { headers });
+        const posts = await postsRes.json();
 
-      const { data: allComments } = await _supabase.from('comments').select('*').order('id', { ascending: true });
-      
-      const container = document.getElementById('dynamic-videos');
-      container.innerHTML = '';
+        const commentsRes = await fetch(`${SUPABASE_URL}/rest/v1/comments?select=*&order=id.asc`, { headers });
+        const allComments = await commentsRes.json();
 
-      if (!posts) return;
+        const container = document.getElementById('dynamic-videos');
+        container.innerHTML = '';
 
-      posts.forEach(post => {
-        const postComments = (allComments || []).filter(c => c.post_id === post.id);
-        const commentsHtml = postComments.map(c => `<div class="comment-item">💬 ${c.text}</div>`).join('');
+        if (!Array.isArray(posts)) return;
 
-        container.innerHTML += `
-          <div class="post-box">
-            <video controls playsinline>
-              <source src="${post.video_url}" type="video/mp4">
-            </video>
-            <div class="actions">
-              <button class="action-btn" onclick="addLike(${post.id}, ${post.likes || 0})">
-                ❤️ Layk (${post.likes || 0})
-              </button>
-              <button class="action-btn" onclick="document.getElementById('input-${post.id}').focus()">
-                💬 Komment (${postComments.length})
-              </button>
-            </div>
-            <div class="comments-area">
-              <div class="comment-list">${commentsHtml}</div>
-              <div class="comment-form">
-                <input type="text" id="input-${post.id}" class="comment-input" placeholder="Izoh yozing...">
-                <button class="send-btn" onclick="addComment(${post.id})">➤</button>
+        posts.forEach(post => {
+          const postComments = Array.isArray(allComments) ? allComments.filter(c => c.post_id === post.id) : [];
+          const commentsHtml = postComments.map(c => `<div class="comment-item">💬 ${c.text}</div>`).join('');
+
+          container.innerHTML += `
+            <div class="post-box">
+              <video controls playsinline>
+                <source src="${post.video_url}" type="video/mp4">
+              </video>
+              <div class="actions">
+                <button class="action-btn" onclick="addLike(${post.id}, ${post.likes || 0})">
+                  ❤️ Layk (${post.likes || 0})
+                </button>
+                <button class="action-btn" onclick="document.getElementById('input-${post.id}').focus()">
+                  💬 Komment (${postComments.length})
+                </button>
+              </div>
+              <div class="comments-area">
+                <div class="comment-list">${commentsHtml}</div>
+                <div class="comment-form">
+                  <input type="text" id="input-${post.id}" class="comment-input" placeholder="Izoh yozing...">
+                  <button class="send-btn" onclick="addComment(${post.id})">➤</button>
+                </div>
               </div>
             </div>
-          </div>
-        `;
-      });
+          `;
+        });
+      } catch (e) {
+        showStatus("❌ Yuklashda xato: " + e.message, true);
+      }
     }
 
+    // Layk qo'shish
     async function addLike(postId, currentLikes) {
-      await _supabase.from('posts').update({ likes: currentLikes + 1 }).eq('id', postId);
+      await fetch(`${SUPABASE_URL}/rest/v1/posts?id=eq.${postId}`, {
+        method: 'PATCH',
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ likes: currentLikes + 1 })
+      });
       loadVideos();
     }
 
+    // Komment qo'shish
     async function addComment(postId) {
       const input = document.getElementById(`input-${postId}`);
       const text = input.value.trim();
       if (!text) return;
 
       input.value = '';
-      await _supabase.from('comments').insert([{ post_id: postId, text: text }]);
+      await fetch(`${SUPABASE_URL}/rest/v1/comments`, {
+        method: 'POST',
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ post_id: postId, text: text })
+      });
       loadVideos();
     }
 
