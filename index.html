@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -172,7 +173,7 @@
 
   <script>
     const SUPABASE_URL = 'https://supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_ieHAB6n9oBjpZJZ2JVZ6hw_17yR3gK9';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlxY2hmemJhcmRleWx6andqbWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ0NTYzMTAsImV4cCI6MjExMDAzMjMxMH0.zyfZ0aNZNW2dmxGoDyJkL0KZMQnWLdQc2zPUo_It2vs';
     
     const headers = {
       'apikey': SUPABASE_KEY,
@@ -188,7 +189,6 @@
       banner.textContent = msg;
     }
 
-    // Video yuklash (tashqi kutubxonasiz to'g'ridan-to'g'ri)
     document.getElementById('video-input').addEventListener('change', async function(e) {
       const file = e.target.files.item(0);
       if (!file) return;
@@ -200,7 +200,6 @@
       try {
         const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
         
-        // 1. Videoni Storage'ga yuborish
         const uploadRes = await fetch(`${SUPABASE_URL}/storage/v1/object/videos/${fileName}`, {
           method: 'POST',
           headers: {
@@ -217,7 +216,6 @@
           return;
         }
 
-        // 2. Havolani bazaga yozish
         showStatus("⏳ Bazaga saqlanmoqda...");
         const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/videos/${fileName}`;
         
@@ -250,7 +248,6 @@
       }
     });
 
-    // Videolarni yuklab olish
     async function loadVideos() {
       try {
         const postsRes = await fetch(`${SUPABASE_URL}/rest/v1/posts?select=*&order=id.desc`, { headers });
@@ -296,7 +293,6 @@
       }
     }
 
-    // Layk qo'shish
     async function addLike(postId, currentLikes) {
       await fetch(`${SUPABASE_URL}/rest/v1/posts?id=eq.${postId}`, {
         method: 'PATCH',
@@ -309,7 +305,6 @@
       loadVideos();
     }
 
-    // Komment qo'shish
     async function addComment(postId) {
       const input = document.getElementById(`input-${postId}`);
       const text = input.value.trim();
