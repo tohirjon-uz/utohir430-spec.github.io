@@ -3,10 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mening saytim</title>
+  <title>Tohirjon | Shaxsiy sahifa</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      text-align: center;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      padding: 40px 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      max-width: 350px;
+      width: 90%;
+    }
+    h1 { margin-bottom: 10px; font-size: 28px; }
+    p { font-size: 16px; opacity: 0.9; margin-bottom: 25px; }
+    .btn {
+      display: block;
+      background: white;
+      color: #764ba2;
+      text-decoration: none;
+      padding: 12px 20px;
+      margin: 10px 0;
+      border-radius: 10px;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+    .btn:hover { transform: scale(1.03); }
+  </style>
 </head>
-<body style="text-align: center; font-family: sans-serif; margin-top: 50px; background-color: #f4f4f9;">
-  <h1>Xush kelibsiz!</h1>
-  <p>Bu mening GitHub'dagi shaxsiy bepul saytim.</p>
+<body>
+  <div class="card">
+    <h1>Tohirjon</h1>
+    <p>Mening shaxsiy veb-saytimga xush kelibsiz! Bu yerda loyihalarim va aloqa ma'lumotlarim joylashgan.</p>
+    <a href="https://t.me" class="btn">Telegram orqali yozish</a>
+    <a href="https://instagram.com" class="btn">Instagram sahifam</a>
+    <a href="tel:+998901234567" class="btn">Qo'ng'iroq qilish</a>
+  </div>
 </body>
 </html>
+
