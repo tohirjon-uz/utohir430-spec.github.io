@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tohirjon Usmonov | Shaxsiy sahifa</title>
-  <script src="https://jsdelivr.net"></script>
   <style>
     body {
       margin: 0;
@@ -21,29 +20,90 @@
     .card {
       background: rgba(255, 255, 255, 0.15);
       backdrop-filter: blur(10px);
-      padding: 30px 22px;
+      padding: 25px 18px;
       border-radius: 20px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-      max-width: 350px;
-      width: 90%;
+      max-width: 360px;
+      width: 92%;
     }
     .avatar {
-      width: 110px;
-      height: 110px;
+      width: 100px;
+      height: 100px;
       border-radius: 50%;
       object-fit: cover;
       border: 3px solid white;
-      margin-bottom: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      margin-bottom: 10px;
     }
-    h1 { margin: 0 0 8px 0; font-size: 26px; }
-    p { font-size: 14px; opacity: 0.9; margin-bottom: 18px; }
+    h1 { margin: 0 0 6px 0; font-size: 24px; }
+    p { font-size: 13px; opacity: 0.9; margin-bottom: 18px; }
+    .post-box {
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 16px;
+      padding: 10px;
+      margin-bottom: 18px;
+      text-align: left;
+    }
     video {
       width: 100%;
-      border-radius: 14px;
-      margin-bottom: 18px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+      border-radius: 12px;
+      display: block;
       background: #000;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .action-btn {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .action-btn:active { background: rgba(255, 255, 255, 0.4); }
+    .comments-area {
+      margin-top: 10px;
+      border-top: 1px solid rgba(255,255,255,0.15);
+      padding-top: 8px;
+    }
+    .comment-list {
+      max-height: 110px;
+      overflow-y: auto;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+    .comment-item {
+      background: rgba(255,255,255,0.1);
+      padding: 5px 8px;
+      border-radius: 6px;
+      margin-bottom: 4px;
+      word-break: break-word;
+    }
+    .comment-form {
+      display: flex;
+      gap: 6px;
+    }
+    .comment-input {
+      flex: 1;
+      border: none;
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-size: 13px;
+      outline: none;
+    }
+    .send-btn {
+      background: white;
+      color: #764ba2;
+      border: none;
+      border-radius: 8px;
+      padding: 0 12px;
+      font-weight: bold;
+      cursor: pointer;
     }
     .btn {
       display: block;
@@ -54,21 +114,18 @@
       margin: 10px 0;
       border-radius: 10px;
       font-weight: bold;
-      transition: 0.3s;
+      text-align: center;
     }
-    .btn:hover { transform: scale(1.03); }
-
-    /* Pastki o'ng burchakdagi + tugmasi dizayni */
     .plus-btn {
       position: fixed;
       bottom: 25px;
       right: 25px;
-      width: 62px;
-      height: 62px;
+      width: 60px;
+      height: 60px;
       background: white;
       color: #764ba2;
       border-radius: 50%;
-      font-size: 38px;
+      font-size: 36px;
       font-weight: bold;
       display: flex;
       align-items: center;
@@ -76,82 +133,120 @@
       box-shadow: 0 6px 20px rgba(0,0,0,0.35);
       cursor: pointer;
       z-index: 1000;
-      transition: 0.2s;
-      user-select: none;
     }
-    .plus-btn:active { transform: scale(0.92); }
   </style>
 </head>
 <body>
   <div class="card">
     <img src="IMG_20261110_174641_461.jpg" class="avatar" alt="Tohirjon">
     <h1>Tohirjon Usmonov</h1>
-    <p>Mening shaxsiy veb-saytimga xush kelibsiz! Ijtimoiy tarmoqlardagi sahifalarimga obuna bo'ling.</p>
+    <p>Mening shaxsiy veb-saytimga xush kelibsiz! Videolarga layk bosing va izoh qoldiring.</p>
     
-    <!-- Yangi yuklangan videolar shu yerda chiqadi -->
     <div id="dynamic-videos"></div>
 
-    <!-- Sizning birinchi videongiz -->
-    <video controls playsinline>
-      <source src="603cc6bda1b9b07eb294497bf0208eb7.mp4" type="video/mp4">
-    </video>
+    <div class="post-box">
+      <video controls playsinline>
+        <source src="603cc6bda1b9b07eb294497bf0208eb7.mp4" type="video/mp4">
+      </video>
+    </div>
 
     <a href="https://instagram.com" target="_blank" class="btn">Instagram sahifam</a>
     <a href="https://youtube.com" target="_blank" class="btn">YouTube kanalim</a>
   </div>
 
-  <!-- Ekran burchagidagi + tugmasi -->
   <label for="video-input" class="plus-btn" title="Video qo'shish">+</label>
   <input type="file" id="video-input" accept="video/*" style="display: none;">
 
+  <script src="https://jsdelivr.net" defer></script>
   <script>
-    const supabaseUrl = 'https://yqchfzbardeylzjwjmjp.supabase.co';
-    const supabaseKey = 'sb_publishable_ieHAB6n9oBjpZJZ2JVZ6hw_17yR3gK9';
-    const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    let _supabase;
 
-    // + tugmasi orqali video yuklash
-    document.getElementById('video-input').addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
+    window.addEventListener('load', function() {
+      if (!window.supabase) return;
 
-      const btn = document.querySelector('.plus-btn');
-      btn.textContent = '⏳';
+      const supabaseUrl = 'https://supabase.co';
+      const supabaseKey = 'sb_publishable_ieHAB6n9oBjpZJZ2JVZ6hw_17yR3gK9';
+      _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-      const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+      document.getElementById('video-input').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
 
-      const { error } = await _supabase.storage.from('videos').upload(fileName, file);
-      if (error) {
-        alert("Yuklashda xatolik: " + error.message);
+        const btn = document.querySelector('.plus-btn');
+        btn.textContent = '⏳';
+
+        const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+        const { error } = await _supabase.storage.from('videos').upload(fileName, file);
+        
+        if (error) {
+          alert("Xatolik: " + error.message);
+          btn.textContent = '+';
+          return;
+        }
+
+        const { data: publicUrlData } = _supabase.storage.from('videos').getPublicUrl(fileName);
+        await _supabase.from('posts').insert([{ video_url: publicUrlData.publicUrl, likes: 0 }]);
+        
         btn.textContent = '+';
-        return;
-      }
+        alert("Video chiqarildi!");
+        loadVideos();
+      });
 
-      const { data: publicUrlData } = _supabase.storage.from('videos').getPublicUrl(fileName);
-      await _supabase.from('posts').insert([{ video_url: publicUrlData.publicUrl }]);
-      
-      btn.textContent = '+';
-      alert("Video muvaffaqiyatli chiqarildi!");
       loadVideos();
     });
 
-    // Bazadagi barcha videolarni ekranga chiqarish
     async function loadVideos() {
       const { data: posts } = await _supabase.from('posts').select('*').order('id', { ascending: false });
+      const { data: allComments } = await _supabase.from('comments').select('*').order('id', { ascending: true });
+      
       const container = document.getElementById('dynamic-videos');
       container.innerHTML = '';
 
-      if (posts) {
-        posts.forEach(post => {
-          container.innerHTML += `
+      if (!posts) return;
+
+      posts.forEach(post => {
+        const postComments = (allComments || []).filter(c => c.post_id === post.id);
+        const commentsHtml = postComments.map(c => `<div class="comment-item">💬 ${c.text}</div>`).join('');
+
+        container.innerHTML += `
+          <div class="post-box">
             <video controls playsinline>
               <source src="${post.video_url}" type="video/mp4">
             </video>
-          `;
-        });
-      }
+            <div class="actions">
+              <button class="action-btn" onclick="addLike(${post.id}, ${post.likes || 0})">
+                ❤️ Layk (${post.likes || 0})
+              </button>
+              <button class="action-btn" onclick="document.getElementById('input-${post.id}').focus()">
+                💬 Komment (${postComments.length})
+              </button>
+            </div>
+            <div class="comments-area">
+              <div class="comment-list">${commentsHtml}</div>
+              <div class="comment-form">
+                <input type="text" id="input-${post.id}" class="comment-input" placeholder="Izoh yozing...">
+                <button class="send-btn" onclick="addComment(${post.id})">➤</button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
     }
 
-    loadVideos();
+    async function addLike(postId, currentLikes) {
+      await _supabase.from('posts').update({ likes: currentLikes + 1 }).eq('id', postId);
+      loadVideos();
+    }
+
+    async function addComment(postId) {
+      const input = document.getElementById(`input-${postId}`);
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = '';
+      await _supabase.from('comments').insert([{ post_id: postId, text: text }]);
+      loadVideos();
+    }
   </script>
 </body>
 </html>
