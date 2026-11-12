@@ -7,6 +7,7 @@
   <style>
     body {
       margin: 0;
+      padding: 20px 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
@@ -19,30 +20,37 @@
     .card {
       background: rgba(255, 255, 255, 0.15);
       backdrop-filter: blur(10px);
-      padding: 35px 25px;
+      padding: 30px 22px;
       border-radius: 20px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
       max-width: 350px;
       width: 90%;
     }
     .avatar {
-      width: 120px;
-      height: 120px;
+      width: 110px;
+      height: 110px;
       border-radius: 50%;
       object-fit: cover;
       border: 3px solid white;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
-    h1 { margin: 0 0 10px 0; font-size: 28px; }
-    p { font-size: 15px; opacity: 0.9; margin-bottom: 25px; }
+    h1 { margin: 0 0 8px 0; font-size: 26px; }
+    p { font-size: 14px; opacity: 0.9; margin-bottom: 18px; }
+    video {
+      width: 100%;
+      border-radius: 14px;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+      background: #000;
+    }
     .btn {
       display: block;
       background: white;
       color: #764ba2;
       text-decoration: none;
       padding: 13px 20px;
-      margin: 12px 0;
+      margin: 10px 0;
       border-radius: 10px;
       font-weight: bold;
       transition: 0.3s;
@@ -55,6 +63,12 @@
     <img src="IMG_20261110_174641_461.jpg" class="avatar" alt="Tohirjon">
     <h1>Tohirjon Usmonov</h1>
     <p>Mening shaxsiy veb-saytimga xush kelibsiz! Ijtimoiy tarmoqlardagi sahifalarimga obuna bo'ling.</p>
+    
+    <!-- Video pleyer -->
+    <video controls playsinline>
+      <source src="603cc6bda1b9b07eb294497bf0208eb7.mp4" type="video/mp4">
+    </video>
+
     <a href="https://instagram.com" target="_blank" class="btn">Instagram sahifam</a>
     <a href="https://youtube.com" target="_blank" class="btn">YouTube kanalim</a>
   </div>
